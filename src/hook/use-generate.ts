@@ -24,7 +24,7 @@ export function useGenerate() {
             });
           });
       });
-      // await generateVideo(clips);
+      await generateVideo(clips);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     setLoading(false);
