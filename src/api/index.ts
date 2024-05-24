@@ -41,26 +41,36 @@ export function getSourceMeta(options: { refresh: boolean; path: string }) {
     .then((res) => res.json<ApiResponse<VideoType[]>>());
 }
 
-export function generateVideo(clips: ClipDataType[]) {
+export function generateVideo(clips: ClipDataType[], bgm?: string) {
   return ky.post("http://localhost:8000/video/clip", {
     timeout: 1000 * 60 * 10,
-    json: clips,
+    json: {
+      videos: clips,
+      bgm_source: bgm,
+      enable_bgm: Boolean(bgm),
+      video_aspect: "9:16",
+    },
   });
 }
 
 export function getTemplate() {
+  const savedTemplate = localStorage.getItem("template");
+  const template = savedTemplate ? JSON.parse(savedTemplate) : templateDemo;
   return Promise.resolve({
     code: 0,
-    data: [templateDemo],
+    data: [template],
   }) as Promise<ApiResponseSuccess<TemplateType[]>>;
 }
 
 export function getGPT(text: string) {
-  return ky.post("http://localhost:8000/gpt/text", {
-    timeout: 1000 * 60 * 10,
-    json: {
-      system: "",
-      user: text,
-    },
-  }).then(res => res.json<ApiResponse<string>>())
+  return ky
+    .post("http://localhost:8000/gpt/text", {
+      timeout: 1000 * 60 * 10,
+      json: {
+        system:
+          "",
+        user: text,
+      },
+    })
+    .then((res) => res.json<ApiResponse<string>>());
 }

@@ -1,31 +1,23 @@
 import { useState } from "react";
 import { generateVideo } from "../api";
-import { ClipDataType, TemplateType } from "../util/const";
-import { getClipLength, getDuration, getVideo } from "../util/video";
-import { useResource } from "./use-resource";
+import { ClipDataType } from "../util/const";
+import { atom, useAtomValue } from "jotai";
 
+export const allowGenerateAtom = atom(true);
 export function useGenerate() {
-  // 模板 -> 结构化数据
-  const { resource } = useResource();
   const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(-1);
-  async function mutate(count: number, template: TemplateType) {
+  const allowGenerate = useAtomValue(allowGenerateAtom);
+
+  async function mutate(count: number, clips: ClipDataType[], bgm?: string) {
     setLoading(true);
     for await (const i of Array(count).keys()) {
       setCurrentIndex(i);
-      const clips: ClipDataType[] = [];
-      template.block.forEach((block) => {
-        Array(getClipLength(block))
-          .fill(0)
-          .forEach(() => {
-            clips.push({
-              source: getVideo(resource, block),
-              duration: getDuration(block),
-            });
-          });
-      });
-      await generateVideo(clips);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // 调试控制是否发送请求
+      if (allowGenerate) {
+        await generateVideo(clips, bgm).catch();
+      }
     }
     setLoading(false);
   }

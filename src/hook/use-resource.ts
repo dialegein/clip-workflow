@@ -1,7 +1,9 @@
 import { atom, useAtom } from "jotai";
 import { VideoType } from "../util/const";
 import { getSourceMeta, isApiResponseSuccess } from "../api";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { isEmpty } from "lodash-es";
+import { buildFileTree } from "../util/path";
 
 const resourceAtom = atom<VideoType[]>([]);
 
@@ -32,8 +34,28 @@ export function useResource() {
       }
     });
   };
+
+  // 默认初始化
+  useEffect(() => {
+    if (isEmpty(resource)) {
+      const saved = localStorage.getItem("resource");
+      if (saved) {
+        mutate(saved);
+      }
+    }
+  }, []);
+
+  const treeResource = useMemo(() => {
+    return [
+      buildFileTree(
+        resource.map((v) => `${v.path}(${Math.round(v.duration)}s)`)
+      ),
+    ];
+  }, [resource]);
+
   return {
     resource,
+    treeResource,
     mutate,
     loading,
   };
